@@ -24,6 +24,8 @@ def find_index_post(post_id: int):
     for index, post in enumerate(my_posts):
         if post["id"] == post_id:
             return index
+    return None
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -40,7 +42,7 @@ def create_posts(post: Post):
     return {"data": post_dict}
 
 @app.get("/posts/{post_id}")
-def get_post(post_id: int, response: Response):
+def get_post(post_id: int):
     post = find_post(post_id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -50,7 +52,7 @@ def get_post(post_id: int, response: Response):
     return {"data": post}
 
 @app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int, response: Response):
+def delete_post(post_id: int):
     index = find_index_post(post_id)
     if index is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
