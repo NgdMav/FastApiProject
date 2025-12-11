@@ -1,4 +1,3 @@
-from typing import Optional
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from pydantic import BaseModel
 import psycopg2
@@ -15,7 +14,6 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
 
 try:
     conn = psycopg2.connect(host="localhost", database="fastapi", user="postgres",
@@ -28,49 +26,41 @@ except Exception as error:
 finally:
     pass
 
-my_posts = [{"title": "Title of post 1", "content": "Content of post 1", "id": 1},
-            {"title": "Title of post 2", "content": "Content of post 2", "id": 2},]
-
-def find_post(post_id: int):
-    for post in my_posts:
-        if post["id"] == post_id:
-            return post
-    return None
-
-def find_index_post(post_id: int):
-    for index, post in enumerate(my_posts):
-        if post["id"] == post_id:
-            return index
-    return None
-
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
 @app.get("/sqlalchemy")
 def test_connection(db: Session = Depends(get_db)):
-    return {"status": "success", "data": db}
+    posts = db.query(models.Post).all()
+    return {"data": posts}
 
 @app.get("/posts")
-def get_posts():
-    cursor.execute("SELECT * FROM fastapi.fastapi.posts;")
-    posts = cursor.fetchall()
+def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("SELECT * FROM fastapi.fastapi.posts;")
+    # posts = cursor.fetchall()
+    posts = db.query(models.Post).all()
     return {"data":posts}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post: Post):
-    cursor.execute("""INSERT INTO fastapi.fastapi.posts (title, content, published)
-                      VALUES (%s, %s, %s) returning *;""",
-                   (post.title, post.content, post.published))
-    new_post = cursor.fetchone()
-    conn.commit()
+def create_posts(post: Post, db: Session = Depends(get_db)):
+    # cursor.execute("""INSERT INTO fastapi.fastapi.posts (title, content, published)
+    #                   VALUES (%s, %s, %s) returning *;""",
+    #                (post.title, post.content, post.published))
+    # new_post = cursor.fetchone()
+    # conn.commit()
+    new_post = models.Post(**post.model_dump())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     return {"data": new_post}
 
 @app.get("/posts/{post_id}")
-def get_post(post_id: int):
-    cursor.execute("""SELECT * FROM fastapi.fastapi.posts WHERE id = %s;""",
-                   (str(post_id),))
-    post = cursor.fetchone()
+def get_post(post_id: int, db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM fastapi.fastapi.posts WHERE id = %s;""",
+    #                (str(post_id),))
+    # post = cursor.fetchone()
+    post = db.query(models.Post).filter(models.Post.id == post_id).one_or_none()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Post not found")
@@ -78,25 +68,31 @@ def get_post(post_id: int):
     return {"data": post}
 
 @app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int):
-    cursor.execute("""DELETE FROM fastapi.fastapi.posts WHERE id = %s returning *;""",
-                   (str(post_id),))
-    deleted_post = cursor.fetchone()
-    conn.commit()
-    if deleted_post is None:
+def delete_post(post_id: int, db: Session = Depends(get_db)):
+    # cursor.execute("""DELETE FROM fastapi.fastapi.posts WHERE id = %s returning *;""",
+    #                (str(post_id),))
+    # deleted_post = cursor.fetchone()
+    # conn.commit()
+    deleted_post = db.query(models.Post).filter(models.Post.id == post_id)
+    if deleted_post.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Post not found")
+    deleted_post.delete(synchronize_session=False)
+    db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.put("/posts/{post_id}", status_code=status.HTTP_202_ACCEPTED)
-def update_post(post_id: int, post: Post):
-    cursor.execute("""UPDATE fastapi.fastapi.posts SET title = %s, content = %s,
-                                                       published = %s where id = %s
-                      returning *;""",
-                   (post.title, post.content, post.published, post_id))
-    updated_post = cursor.fetchone()
-    conn.commit()
-    if updated_post is None:
+def update_post(post_id: int, post: Post, db: Session = Depends(get_db)):
+    # cursor.execute("""UPDATE fastapi.fastapi.posts SET title = %s, content = %s,
+    #                                                    published = %s where id = %s
+    #                   returning *;""",
+    #                (post.title, post.content, post.published, post_id))
+    # updated_post = cursor.fetchone()
+    # conn.commit()
+    updated_post = db.query(models.Post).filter(models.Post.id == post_id)
+    if updated_post.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Post not found")
-    return {"data": updated_post}
+    updated_post.update(post.model_dump(), synchronize_session=False)
+    db.commit()
+    return {"data": updated_post.first()}
