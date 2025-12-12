@@ -51,7 +51,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM fastapi.fastapi.posts WHERE id = %s;""",
     #                (str(post_id),))
     # post = cursor.fetchone()
-    post = db.query(models.Post).filter(models.Post.id == post_id).one_or_none()
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Post not found")
@@ -96,3 +96,12 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+@app.get("/users/{user_id}", response_model=schemas.UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="User not found")
+
+    return user
