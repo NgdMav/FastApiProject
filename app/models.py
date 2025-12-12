@@ -10,3 +10,13 @@ class Post(Base):
     content = Column(String, nullable=False)
     published = Column(Boolean, nullable=False, server_default='True')
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = {"schema": "fastapi"}
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    username = Column(String(255), nullable=False, unique=True)
+    email = Column(String(255), nullable=False, unique=True)
+    password = Column(String(255), nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
