@@ -15,7 +15,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db),
-                 get_current_user: str = Depends(oauth2.get_current_user)):
+                 current_user: str = Depends(oauth2.get_current_user)):
     # cursor.execute("""INSERT INTO fastapi.fastapi.posts (title, content, published)
     #                   VALUES (%s, %s, %s) returning *;""",
     #                (post.title, post.content, post.published))
@@ -29,7 +29,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db),
 
 @router.get("/{post_id}", response_model=schemas.PostResponse)
 def get_post(post_id: int, db: Session = Depends(get_db),
-             get_current_user: str = Depends(oauth2.get_current_user)):
+             current_user: str = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM fastapi.fastapi.posts WHERE id = %s;""",
     #                (str(post_id),))
     # post = cursor.fetchone()
@@ -42,7 +42,7 @@ def get_post(post_id: int, db: Session = Depends(get_db),
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(post_id: int, db: Session = Depends(get_db),
-                get_current_user: str = Depends(oauth2.get_current_user)):
+                current_user: str = Depends(oauth2.get_current_user)):
     # cursor.execute("""DELETE FROM fastapi.fastapi.posts WHERE id = %s returning *;""",
     #                (str(post_id),))
     # deleted_post = cursor.fetchone()
@@ -57,7 +57,7 @@ def delete_post(post_id: int, db: Session = Depends(get_db),
 
 @router.put("/{post_id}", status_code=status.HTTP_202_ACCEPTED, response_model=schemas.PostResponse)
 def update_post(post_id: int, post: schemas.PostCreate, db: Session = Depends(get_db),
-                get_current_user: str = Depends(oauth2.get_current_user)):
+                current_user: str = Depends(oauth2.get_current_user)):
     # cursor.execute("""UPDATE fastapi.fastapi.posts SET title = %s, content = %s,
     #                                                    published = %s where id = %s
     #                   returning *;""",
