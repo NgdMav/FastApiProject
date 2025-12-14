@@ -23,3 +23,10 @@ class User(Base):
     email = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+class Vote(Base):
+    __tablename__ = "votes"
+    __table_args__ = {"schema": "fastapi"}
+
+    post_id = Column(Integer, ForeignKey("fastapi.posts.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("fastapi.users.id", ondelete="CASCADE"), primary_key=True)

@@ -2,7 +2,6 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
 
-
 class UserBase(BaseModel):
     username: str
     email: EmailStr
@@ -32,7 +31,6 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str
 
-
 class PostBase(BaseModel):
     title: str
     content: str
@@ -49,3 +47,6 @@ class PostResponse(PostBase):
 
     class Config:
         from_attributes = True
+class Vote(BaseModel):
+    post_id: int
+    dir: int
