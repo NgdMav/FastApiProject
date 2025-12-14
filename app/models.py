@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, ForeignKey
+from sqlalchemy.orm import relationship
+
 from app.database import Base
 
 class Post(Base):
@@ -11,6 +13,7 @@ class Post(Base):
     published = Column(Boolean, nullable=False, server_default='True')
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     owner_id = Column(Integer, ForeignKey("fastapi.users.id", ondelete="CASCADE"), nullable=False)
+    owner = relationship("User")
 
 class User(Base):
     __tablename__ = "users"
