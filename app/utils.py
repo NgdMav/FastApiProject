@@ -1,4 +1,3 @@
-from passlib.context import CryptContext
 from pwdlib import PasswordHash
 
 password_hash = PasswordHash.recommended()
