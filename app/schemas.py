@@ -13,6 +13,7 @@ class PostCreate(PostBase):
 class PostResponse(PostBase):
     id: int
     created_at: datetime
+    owner_id: int
 
     class Config:
         from_attributes = True
@@ -30,6 +31,10 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
+class CurrentUser(UserBase):
+    id: int
+    created_at: datetime
 
 # class UserLogin(BaseModel):
 #     username: str
