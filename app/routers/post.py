@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app import models, schemas, oauth2
 from app.database import get_db
 
@@ -8,10 +9,14 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 
 @router.get("/", response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    posts = (db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+             .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+             .group_by(models.Post.id)
+             .filter(models.Post.title.contains(search))
+             .limit(limit).offset(skip).all())
     return posts
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db),
                  current_user: schemas.CurrentUser = Depends(oauth2.get_current_user)):
     new_post = models.Post(**post.model_dump(), owner_id=current_user.id)
@@ -22,7 +27,10 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db),
 
 @router.get("/{post_id}", response_model=schemas.PostResponse)
 def get_post(post_id: int, db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    post = (db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
+            .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+            .group_by(models.Post.id)
+            .filter(models.Post.id == post_id).first())
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Post not found")
@@ -42,7 +50,7 @@ def delete_post(post_id: int, db: Session = Depends(get_db),
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.put("/{post_id}", status_code=status.HTTP_202_ACCEPTED, response_model=schemas.PostResponse)
+@router.put("/{post_id}", status_code=status.HTTP_202_ACCEPTED, response_model=schemas.Post)
 def update_post(post_id: int, post: schemas.PostCreate, db: Session = Depends(get_db),
                 current_user: schemas.CurrentUser = Depends(oauth2.get_current_user)):
     updated_post = db.query(models.Post).filter(models.Post.id == post_id)

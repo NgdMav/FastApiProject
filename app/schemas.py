@@ -39,7 +39,7 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass
 
-class PostResponse(PostBase):
+class Post(PostBase):
     id: int
     created_at: datetime
     # owner_id: int
@@ -47,6 +47,11 @@ class PostResponse(PostBase):
 
     class Config:
         from_attributes = True
+
+class PostResponse(BaseModel):
+    Post: Post
+    votes: int
+
 class Vote(BaseModel):
     post_id: int
     dir: int

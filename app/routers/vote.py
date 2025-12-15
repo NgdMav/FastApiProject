@@ -8,6 +8,9 @@ router = APIRouter(prefix="/vote", tags=["Vote"])
 @router.post("/", status_code=status.HTTP_202_ACCEPTED)
 def create_vote(vote: schemas.Vote, db: Session = Depends(get_db),
                 current_user: schemas.CurrentUser = Depends(oauth2.get_current_user)):
+    if not db.query(models.Post).filter(models.Post.id == vote.post_id).first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
     vote_query = db.query(models.Vote).filter(models.Vote.post_id == vote.post_id,
                                               models.Vote.user_id == current_user.id)
     found_vote = vote_query.first()
