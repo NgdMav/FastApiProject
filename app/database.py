@@ -1,7 +1,7 @@
 # import psycopg2
 # from psycopg2.extras import RealDictCursor
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
@@ -9,6 +9,8 @@ from app.config import settings
 SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USER}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
+with engine.begin() as conn:
+    conn.execute(text("CREATE SCHEMA IF NOT EXISTS fastapi"))
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
