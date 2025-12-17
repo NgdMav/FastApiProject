@@ -1,5 +1,6 @@
 # import psycopg2
 # from psycopg2.extras import RealDictCursor
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -21,9 +22,15 @@ def get_db():
         db.close()
 
 # try:
-#     conn = psycopg2.connect(host="localhost", database="fastapi", user="postgres",
-#                             port="5432", cursor_factory=RealDictCursor)
+#     conn = psycopg2.connect(host=settings.DATABASE_HOST,
+#                             database=settings.DATABASE_NAME,
+#                             user=settings.DATABASE_USER,
+#                             password=settings.DATABASE_PASSWORD,
+#                             port=settings.DATABASE_PORT,
+#                             cursor_factory=RealDictCursor)
 #     cursor = conn.cursor()
+#     cursor.execute("CREATE SCHEMA IF NOT EXISTS fastapi")
+#     conn.commit()
 #     print("Database connected successfully")
 # except Exception as error:
 #     print("Connection failed")

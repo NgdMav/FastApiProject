@@ -2,15 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware import cors
 
 from app import models
-from app.config import settings
+# from app.config import settings
 from app.database import engine
 from app.routers import post, user, auth, vote
-
+import app.database
 app = FastAPI()
 
 origins = [
     "http://localhost:3000",
-    "http://localhost:8000"
+    "http://localhost:8000",
+    "*"
 ]
 app.add_middleware(
     cors.CORSMiddleware,
@@ -19,7 +20,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# models.Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 async def root():
